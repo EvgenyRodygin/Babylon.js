@@ -973,8 +973,9 @@ export class StandardMaterial extends PushMaterial {
                         defines.REFLECTIONOVERALPHA = this._useReflectionOverAlpha;
                         defines.INVERTCUBICMAP = this._reflectionTexture.coordinatesMode === Texture.INVCUBIC_MODE;
                         defines.REFLECTIONMAP_3D = this._reflectionTexture.isCube;
+                        defines.REFLECTIONMAP_OPPOSITEZ =
+                            defines.REFLECTIONMAP_3D && this.getScene().useRightHandedSystem ? !this._reflectionTexture.invertZ : this._reflectionTexture.invertZ;
                         defines.RGBDREFLECTION = this._reflectionTexture.isRGBD;
-                        defines.REFLECTIONMAP_OPPOSITEZ = this.getScene().useRightHandedSystem ? !this._reflectionTexture.invertZ : this._reflectionTexture.invertZ;
 
                         switch (this._reflectionTexture.coordinatesMode) {
                             case Texture.EXPLICIT_MODE:
@@ -1271,10 +1272,6 @@ export class StandardMaterial extends PushMaterial {
                 attribs.push(VertexBuffer.ColorKind);
             }
 
-            if (defines.INSTANCESCOLOR) {
-                attribs.push(VertexBuffer.ColorInstanceKind);
-            }
-
             MaterialHelper.PrepareAttributesForBones(attribs, mesh, defines, fallbacks);
             MaterialHelper.PrepareAttributesForInstances(attribs, defines);
             MaterialHelper.PrepareAttributesForMorphTargets(attribs, mesh, defines);
@@ -1367,6 +1364,7 @@ export class StandardMaterial extends PushMaterial {
             this._eventInfo.fallbackRank = 0;
             this._eventInfo.defines = defines;
             this._eventInfo.uniforms = uniforms;
+            this._eventInfo.attributes = attribs;
             this._eventInfo.samplers = samplers;
             this._eventInfo.uniformBuffersNames = uniformBuffers;
             this._eventInfo.customCode = undefined;
@@ -1748,7 +1746,13 @@ export class StandardMaterial extends PushMaterial {
             }
 
             // View
-            if ((scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE) || this._reflectionTexture || this._refractionTexture || mesh.receiveShadows) {
+            if (
+                (scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE) ||
+                this._reflectionTexture ||
+                this._refractionTexture ||
+                mesh.receiveShadows ||
+                defines.PREPASS
+            ) {
                 this.bindView(effect);
             }
 

@@ -1449,6 +1449,7 @@ export abstract class PBRBaseMaterial extends PushMaterial {
         this._eventInfo.fallbackRank = fallbackRank;
         this._eventInfo.defines = defines;
         this._eventInfo.uniforms = uniforms;
+        this._eventInfo.attributes = attribs;
         this._eventInfo.samplers = samplers;
         this._eventInfo.uniformBuffersNames = uniformBuffers;
         this._eventInfo.customCode = undefined;
@@ -1556,7 +1557,6 @@ export abstract class PBRBaseMaterial extends PushMaterial {
                     defines.REFLECTION = true;
                     defines.GAMMAREFLECTION = reflectionTexture.gammaSpace;
                     defines.RGBDREFLECTION = reflectionTexture.isRGBD;
-                    defines.REFLECTIONMAP_OPPOSITEZ = this.getScene().useRightHandedSystem ? !reflectionTexture.invertZ : reflectionTexture.invertZ;
                     defines.LODINREFLECTIONALPHA = reflectionTexture.lodLevelInAlpha;
                     defines.LINEARSPECULARREFLECTION = reflectionTexture.linearSpecularLOD;
 
@@ -1576,6 +1576,7 @@ export abstract class PBRBaseMaterial extends PushMaterial {
                     }
 
                     defines.REFLECTIONMAP_3D = reflectionTexture.isCube;
+                    defines.REFLECTIONMAP_OPPOSITEZ = defines.REFLECTIONMAP_3D && this.getScene().useRightHandedSystem ? !reflectionTexture.invertZ : reflectionTexture.invertZ;
 
                     defines.REFLECTIONMAP_CUBIC = false;
                     defines.REFLECTIONMAP_EXPLICIT = false;
@@ -2264,7 +2265,7 @@ export abstract class PBRBaseMaterial extends PushMaterial {
             }
 
             // View
-            if ((scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE) || reflectionTexture || mesh.receiveShadows) {
+            if ((scene.fogEnabled && mesh.applyFog && scene.fogMode !== Scene.FOGMODE_NONE) || reflectionTexture || mesh.receiveShadows || defines.PREPASS) {
                 this.bindView(effect);
             }
 
